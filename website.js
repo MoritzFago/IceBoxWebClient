@@ -5,6 +5,7 @@ var cors = require('cors');
 var bonjour = require('bonjour')();
 var exec = require('exec');
 var request = require('request');
+var fs = require('fs');
 
 cors({
   credentials: true,
@@ -40,16 +41,21 @@ bonjour.find(
   });
 
 app.get(
-  '/',
+  '/image/:file.png',
   function(req, res) {
-    app.use(express.static(__dirname + '/static'));
-    res.sendFile(path.join(__dirname + '/static/index.html'));
+    if(/^\/image\/[^.]+?\.png$/.test(req.path)) {
+      if(fs.existsSync(path.join(__dirname + '/static' + req.path))) {
+        res.sendFile(path.join(__dirname + '/static' + req.path));
+        return;
+      }
+    }
+    res.sendFile(path.join(__dirname + '/static/image/bottle.png'));
   });
 app.get(
-  '/image',
+  '/',
   function(req, res) {
-    app.use(express.static(__dirname + '/static/image'));
-    res.sendFile(path.join(__dirname + '/static/image/bottle.png'));
+    app.use(express.static(__dirname + '/static/'));
+    res.sendFile(path.join(__dirname + '/static/index.html'));
   });
 
 app.get(

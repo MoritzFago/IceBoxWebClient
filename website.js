@@ -13,32 +13,38 @@ cors({
 });
 app.use(cors()); // Support cross origin requests
 
+app.apihost = process.env.ICEBOX_API_HOST || "127.0.0.1";
+app.apiport = process.env.ICEBOX_API_PORT || 8081;
+
 bonjour.find(
-  { type: 'http' },
+  { type: 'icebox' },
   function(service) {
     console.log(JSON.stringify(service));
-    if (service.name == 'IceBox') {
-      app.get('/serviceip', function(req, res) {
-        res.json({ ip: service.host, port: service.port });
-      });
-      app.get('/doreset', function(req, res) {
-        console.log("calling reset.");
-        exec('./restart.sh', function(a, b, c) {
-          exec('./restart.sh', function(a, b, c) {
-            res.json({ok: true});
-          });
-        });
-      });
-      app.use('/proxy/:icebox/', function(req, res) {
-        if(req.params.icebox !== service.host + ':' + service.port) {
-          res.error(403);
-        }
-
-        var upstream_url = 'http://' + service.host + ':' + service.port + req.url;
-        req.pipe(request(upstream_url)).pipe(res);
-      });
-    }
+    app.apihost = service.host;
+    app.apiport = service.port;
   });
+
+app.get('/serviceip', function(req, res) {
+  res.json({ ip: app.apihost, port: app.apiport });
+});
+
+app.get('/doreset', function(req, res) {
+  console.log("calling reset.");
+  exec('./restart.sh', function(a, b, c) {
+    exec('./restart.sh', function(a, b, c) {
+      res.json({ok: true});
+    });
+  });
+});
+
+app.use('/proxy/:icebox/', function(req, res) {
+  if(req.params.icebox !== app.apihost + ':' + app.apiport) {
+    res.error(403);
+  }
+
+  var upstream_url = 'http://' + app.apihost + ':' + app.apiport + req.url;
+  req.pipe(request(upstream_url)).pipe(res);
+});
 
 app.get(
   '/image/:file.png',
@@ -51,6 +57,7 @@ app.get(
     }
     res.sendFile(path.join(__dirname + '/static/image/bottle.png'));
   });
+
 app.get(
   '/',
   function(req, res) {

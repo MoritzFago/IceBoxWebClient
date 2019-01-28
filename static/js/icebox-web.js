@@ -313,7 +313,7 @@ function drinkSelection(barcode, callback) {
 
   var dialog = bootbox.dialog({
     message: '"' + drinkName + '" für ' + money + ' € kaufen?',
-    title: "You sure Bro?",
+    title: "Bist du dir sicher?",
     buttons: {
       success: {
         label: "Ja",
@@ -324,7 +324,7 @@ function drinkSelection(barcode, callback) {
         }
       },
       danger: {
-        label: "Noooooooooo",
+        label: "Abbrechen",
         className: "btn-danger",
         callback: function () {}
       }
